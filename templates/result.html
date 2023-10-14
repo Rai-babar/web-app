@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Brain Tumor Detection and Segmentation</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-image: url('static/background.jpeg'); /* Replace 'your-background-image.jpg' with your image path */
+            background-size: contain;
+            background-color: #fff;
+            font-family: Arial, sans-serif;
+            color: white; /* Text color for heading and buttons */
+            position: relative; /* Add relative positioning to body */
+        }
+
+        /* Add a pseudo-element to create the blurred background */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: inherit; /* Inherit the background image from body */
+            filter: blur(4px); /* Apply a blur filter to create the blur effect */
+        }
+
+        /* Style for the overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+            backdrop-filter: blur(0px); /* Apply a blur effect to the overlay */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Style for the container */
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgb(255, 255, 255);
+        }
+
+        h1 {
+            color: #f0f4f8;
+            border: 1px solid #000;
+            padding: 10px;
+            display: inline-block;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #007BFF; /* Add a semi-transparent background */
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #results-container {
+            margin-top: 20px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            padding: 20px; /* Add some padding to the container */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.616); /* Add a subtle shadow */
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        img {
+            max-width: 60%;
+            height: auto;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <div class="container">
+            <div class="logo-container">
+                <img src="static/logo.jpeg" alt="Logo" />
+                <h1>Brain Tumor Detection and Segmentation</h1>
+            </div>
+            <form id="upload-form">
+                <label for="file-upload">Choose an image:</label>
+                <input type="file" id="file-upload" accept=".jpg, .jpeg, .png" />
+                <select id="model-type" name="model-type">
+                    <option value="detection">Tumor Detection</option>
+                    <option value="segmentation">Tumor Segmentation</option>
+                </select>
+                <button type="button" onclick="uploadFile()">Get Results</button>
+            </form>
+
+            <div id="results-container"></div>
+
+            <script>
+                async function uploadFile() {
+                    const fileInput = document.getElementById("file-upload");
+                    const modelType = document.getElementById("model-type").value;
+                    const resultsContainer = document.getElementById("results-container");
+
+                    if (!fileInput.files.length) {
+                        alert("Please choose a file to upload.");
+                        return;
+                    }
+
+                    const file = fileInput.files[0];
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("model_type", modelType);
+
+                    try {
+                        const response = await fetch("/upload/", {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+
+                            // Clear previous results
+                            resultsContainer.innerHTML = "";
+
+                            if (modelType === "detection") {
+                                const resultMessage = data.result || "No results";
+                                const imageSrc = `${data.image_url}?t=${Date.now()}`; // Append timestamp to the image URL
+                                resultsContainer.innerHTML = `
+                                    <p><strong>Result:</strong> ${resultMessage}</p>
+                                    <img src="${imageSrc}" alt="Result Image" />
+                                `;
+                            } else if (modelType === "segmentation") {
+                                const segmentedImageSrc = `${data.segmented_image_url}?t=${Date.now()}`; // Append timestamp to the segmented image URL
+                                resultsContainer.innerHTML = `
+                                    <p><strong>Segmented Image:</strong></p>
+                                    <img src="${segmentedImageSrc}" alt="Segmented Image" />
+                                `;
+                            }
+                        } else {
+                            console.error("Failed to upload file.");
+                        }
+                    } catch (error) {
+                        console.error("An error occurred:", error);
+                    }
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

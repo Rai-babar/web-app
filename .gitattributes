@@ -1,0 +1,4 @@
+ResUNet-segModel-weights.hdf5 filter=lfs diff=lfs merge=lfs -text
+BrainTumorDetection.h5 filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
